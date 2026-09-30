@@ -1,0 +1,31 @@
+name: Build
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - minecraft: "26.1.2"
+            fabric: "0.155.3+26.1.2"
+            owo: "0.13.1+26.1"
+          - minecraft: "26.2"
+            fabric: "0.161.0+26.2"
+            owo: "0.13.1+26.2"
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6.0.1
+        with:
+          distribution: microsoft
+          java-version: "25"
+      - uses: gradle/actions/setup-gradle@v6.3.0
+      - run: bash ./gradlew build publishToMavenLocal -Pminecraft_version=${{ matrix.minecraft }} -Pfabric_version=${{ matrix.fabric }} -Powo_version=${{ matrix.owo }}
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: kaeman-config-ui-${{ matrix.minecraft }}
+          path: build/libs/*.jar
+          if-no-files-found: error

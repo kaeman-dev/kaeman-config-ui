@@ -1,0 +1,42 @@
+name: Publish version tags
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - tag: "26.1"
+            minecraft: "26.1.2"
+            fabric: "0.155.3+26.1.2"
+            owo: "0.13.1+26.1"
+          - tag: "26.2"
+            minecraft: "26.2"
+            fabric: "0.161.0+26.2"
+            owo: "0.13.1+26.2"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Create pinned commit and force-move tag
+        run: |
+          git config user.name "kaeman-bot"
+          git config user.email "kaeman-bot@users.noreply.github.com"
+          sed -i "s/^minecraft_version=.*/minecraft_version=${{ matrix.minecraft }}/" gradle.properties
+          sed -i "s/^fabric_version=.*/fabric_version=${{ matrix.fabric }}/" gradle.properties
+          sed -i "s/^owo_version=.*/owo_version=${{ matrix.owo }}/" gradle.properties
+          git add gradle.properties
+          TREE=$(git write-tree)
+          COMMIT=$(git commit-tree "$TREE" -m "ci: ${{ matrix.tag }} (minecraft ${{ matrix.minecraft }})")
+          git tag -f "${{ matrix.tag }}" "$COMMIT"
+          git push -f origin "refs/tags/${{ matrix.tag }}"
+      - name: Warm JitPack build
+        run: |
+          curl -sSL --max-time 1800 -o /dev/null -w "JitPack HTTP %{http_code}\n" \
+            "https://jitpack.io/com/github/kaeman-dev/kaeman-config-ui/${{ matrix.tag }}/kaeman-config-ui-${{ matrix.tag }}.pom"

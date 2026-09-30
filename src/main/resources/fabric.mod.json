@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "kaeman_config_ui",
+  "version": "${version}",
+  "name": "Kaeman Config UI",
+  "environment": "client",
+  "license": "Apache-2.0",
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=25",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
+    "owo": "*"
+  }
+}
